@@ -29,6 +29,9 @@ def word_indices(vec):
     of word indices. The word indices are between 0 and
     vocab_size-1. The sequence length is equal to the document length.
     """
+    print "Vec word index"
+    print vec
+    print vec.nonzero()[0]
     for idx in vec.nonzero()[0]:
         for i in xrange(int(vec[idx])):
             yield idx
@@ -85,10 +88,11 @@ class LdaSampler(object):
         Conditional distribution (vector of size n_topics).
         """
         vocab_size = self.nzw.shape[1]
-        left = (self.nzw[:, w] + self.beta) / \
-               (self.nz + self.beta * vocab_size)
-        right = (self.nmz[m, :] + self.alpha) / \
-                (self.nm[m] + self.alpha * self.n_topics)
+        left = (self.nzw[:, w] + self.beta) / (self.nz + self.beta * vocab_size)
+        right = (self.nmz[m, :] + self.alpha) / (self.nm[m] + self.alpha * self.n_topics)
+        # print left
+        # print right
+        # print ""
         p_z = left * right
         # normalize to obtain probabilities
         p_z /= np.sum(p_z)
@@ -130,12 +134,20 @@ class LdaSampler(object):
 
         for it in xrange(maxiter):
             for m in xrange(n_docs):
+                word_indices(matrix[m, :])
                 for i, w in enumerate(word_indices(matrix[m, :])):
                     z = self.topics[(m, i)]
                     self.nmz[m, z] -= 1
                     self.nm[m] -= 1
                     self.nzw[z, w] -= 1
                     self.nz[z] -= 1
+
+                    print "Iteration: %d" % it
+                    print z
+                    print self.nz
+                    print self.nzw
+                    print self.nm
+                    print self.nmz
 
                     p_z = self._conditional_distribution(m, w)
                     z = sample_index(p_z)
@@ -223,22 +235,25 @@ if __name__ == "__main__":
     sampler = LdaSampler(N_TOPICS)
 
     print N_TOPICS
-    print count_matrix
+    # print count_matrix
     # print count_matrix.shape
 
-    for it, phi in enumerate(sampler.run(count_matrix, maxiter=200)):
+    for it, phi in enumerate(sampler.run(count_matrix, maxiter=500)):
         print "%d\t%f" % (it, sampler.log_likelihood())
 
     # print sampler.topics
     # Create the topic matrix T x V
-    topic_matrix = np.zeros((N_TOPICS, count_matrix.shape[1]))
-    for position, topic in sampler.topics.iteritems():
-        document, word = position
-        topic_matrix[topic - 1, word] += 1
+    # topic_matrix = np.zeros((N_TOPICS, count_matrix.shape[1]))
+    # for position, topic in sampler.topics.iteritems():
+    #     document, word = position
+    #     topic_matrix[topic - 1, word] += 1
+
+    # print topic_matrix
+    # print sampler.nzw
 
     # Take only the top 10 indices from each topic in topic_matrix
     topic_scoped_matrix = np.zeros((N_TOPICS, 10))
-    for index, topic in enumerate(topic_matrix):
+    for index, topic in enumerate(sampler.nzw):
         topic_scoped_matrix[index] = np.argsort(-topic)[:10]
 
     # print topic_scoped_matrix

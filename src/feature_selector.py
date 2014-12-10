@@ -71,17 +71,21 @@ class FeatureSelector:
         new_data_set = self.table.top_n_words(10)
         for document_name, words in new_data_set.iteritems():
 
+            with open("../data/scoped/%s" % document_name, 'r') as d:
+                    document = Document(d.read())
+
             path_name = "../data/features/%s" % document_name
 
             with open("%s" % path_name, 'w') as f:
                 for word in words:
-                    f.write(word)
-                    f.write("\n")
+                    for _ in xrange(document.count(word)):
+                        f.write(word)
+                        f.write("\n")
 
 
 if __name__ == '__main__':
-    # FeatureSelector().run("../data/scoped/index-small.txt")
     FeatureSelector().run("../data/scoped/index-small.txt")
+    # FeatureSelector().run("../data/scoped/index-medium.txt")
     # data = Data("../data/features")
     # data.import_features()
     # print data.corpus.keys()

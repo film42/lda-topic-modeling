@@ -11,8 +11,9 @@ class Document:
         self.topics = lines[4][7:].split("/")
         self.link = lines[9][6:].split("\n")[0]
         self.content = raw[raw.find("\n\n")+2:]
+        self.content_lower = self.content.lower()
 
-    @property
-    def content_lower(self):
-        return self.content.lower()
+    def count(self, word):
+        # Ew, count on string?
+        return self.content_lower.count(str(word))
 
