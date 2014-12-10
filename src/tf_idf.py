@@ -54,10 +54,23 @@ class TFIDF:
         corpus_size = len(self.corpus_dict)
         weighted_documents = {}
         pool = {}
+        # Delete words with crazy large counts
+        marked_for_deletion = []
+        for word, count in self.corpus_dict.iteritems():
+            if count >= 30:
+                marked_for_deletion.append(word)
+
+        for word in marked_for_deletion:
+            del self.corpus_dict[word]
+
         # Get the top N weighted words from a document
         for document, words in self.documents:
             document_weighted_words = {}
             for word, count in words.iteritems():
+                # Check word's existence before checking its weight
+                if not word in self.corpus_dict:
+                    continue
+
                 if count >= 1:
                     try:
                         weight = (1 + math.log(count)) * math.log(corpus_size / float(self.corpus_dict[word]))

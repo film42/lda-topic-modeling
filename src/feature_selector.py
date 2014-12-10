@@ -26,6 +26,9 @@ class Data:
 
         return result_matrix
 
+    def index_of(self, word):
+        return self.corpus.keys().index(word)
+
     def import_features(self):
         for file_name in os.listdir(self.path):
             with open("%s/%s" % (self.path, file_name), 'r') as f:
@@ -84,8 +87,8 @@ class FeatureSelector:
 
 
 if __name__ == '__main__':
-    FeatureSelector().run("../data/scoped/index-small.txt")
-    # FeatureSelector().run("../data/scoped/index-medium.txt")
+    # FeatureSelector().run("../data/scoped/index-small.txt")
+    FeatureSelector().run("../data/scoped/index-medium.txt")
     # data = Data("../data/features")
     # data.import_features()
     # print data.corpus.keys()

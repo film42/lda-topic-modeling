@@ -29,9 +29,9 @@ def word_indices(vec):
     of word indices. The word indices are between 0 and
     vocab_size-1. The sequence length is equal to the document length.
     """
-    print "Vec word index"
-    print vec
-    print vec.nonzero()[0]
+    # print "Vec word index"
+    # print vec
+    # print vec.nonzero()[0]
     for idx in vec.nonzero()[0]:
         for i in xrange(int(vec[idx])):
             yield idx
@@ -133,23 +133,27 @@ class LdaSampler(object):
         self._initialize(matrix)
 
         for it in xrange(maxiter):
+            print "KSDF: "
+            print n_docs
             for m in xrange(n_docs):
-                word_indices(matrix[m, :])
                 for i, w in enumerate(word_indices(matrix[m, :])):
                     z = self.topics[(m, i)]
                     self.nmz[m, z] -= 1
                     self.nm[m] -= 1
                     self.nzw[z, w] -= 1
                     self.nz[z] -= 1
-
-                    print "Iteration: %d" % it
-                    print z
-                    print self.nz
-                    print self.nzw
-                    print self.nm
-                    print self.nmz
+                    #
+                    # print "Iteration: %d" % it
+                    # print z
+                    # print self.nz
+                    # print self.nzw
+                    # print self.nm
+                    # print self.nmz
 
                     p_z = self._conditional_distribution(m, w)
+
+                    exit()
+
                     z = sample_index(p_z)
 
                     self.nmz[m, z] += 1
@@ -166,67 +170,6 @@ if __name__ == "__main__":
     N_TOPICS = 10
     DOCUMENT_LENGTH = 100
 
-    def vertical_topic(width, topic_index, document_length):
-        """
-        Generate a topic whose words form a vertical bar.
-        """
-        m = np.zeros((width, width))
-        m[:, topic_index] = int(document_length / width)
-        return m.flatten()
-
-    def horizontal_topic(width, topic_index, document_length):
-        """
-        Generate a topic whose words form a horizontal bar.
-        """
-        m = np.zeros((width, width))
-        m[topic_index, :] = int(document_length / width)
-        return m.flatten()
-
-    def gen_word_distribution(n_topics, document_length):
-        """
-        Generate a word distribution for each of the n_topics.
-        """
-        width = n_topics / 2
-        vocab_size = width ** 2
-        m = np.zeros((n_topics, vocab_size))
-
-        for k in range(width):
-            m[k, :] = vertical_topic(width, k, document_length)
-
-        for k in range(width):
-            m[k + width, :] = horizontal_topic(width, k, document_length)
-
-        m /= m.sum(axis=1)[:, np.newaxis]  # turn counts into probabilities
-
-        return m
-
-    def gen_document(word_dist, n_topics, vocab_size, length=DOCUMENT_LENGTH, alpha=0.1):
-        """
-        Generate a document:
-            1) Sample topic proportions from the Dirichlet distribution.
-            2) Sample a topic index from the Multinomial with the topic
-               proportions from 1).
-            3) Sample a word from the Multinomial corresponding to the topic
-               index from 2).
-            4) Go to 2) if need another word.
-        """
-        theta = np.random.mtrand.dirichlet([alpha] * n_topics)
-        v = np.zeros(vocab_size)
-        for n in range(length):
-            z = sample_index(theta)
-            w = sample_index(word_dist[z, :])
-            v[w] += 1
-        return v
-
-    def gen_documents(word_dist, n_topics, vocab_size, n=500):
-        """
-        Generate a document-term matrix.
-        """
-        m = np.zeros((n, vocab_size))
-        for i in xrange(n):
-            m[i, :] = gen_document(word_dist, n_topics, vocab_size)
-        return m
-
     data = Data("../data/features")
     data.import_features()
     count_matrix = np.array(data.count_vectors())
@@ -238,7 +181,7 @@ if __name__ == "__main__":
     # print count_matrix
     # print count_matrix.shape
 
-    for it, phi in enumerate(sampler.run(count_matrix, maxiter=500)):
+    for it, phi in enumerate(sampler.run(count_matrix, maxiter=1)):
         print "%d\t%f" % (it, sampler.log_likelihood())
 
     # print sampler.topics
